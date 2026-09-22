@@ -9,12 +9,13 @@
 // 2. Enable Firestore (bookings + inquiries) and Authentication (Email/Password, for admin.html)
 // 3. Paste your web app config below
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBYnHcCkxx46ZgPKhm4uiDtPF2mXpZvCPc",
+  authDomain: "mentors-plus-hf.firebaseapp.com",
+  projectId: "mentors-plus-hf",
+  storageBucket: "mentors-plus-hf.firebasestorage.app",
+  messagingSenderId: "571642442785",
+  appId: "1:571642442785:web:5b47e40077e483f1761f60",
+  measurementId: "G-M4KSZWSJL7"
 };
 
 // ---- Resend (booking confirmation emails) ----
