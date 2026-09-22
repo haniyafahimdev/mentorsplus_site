@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Mentor's Plus</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/preloader.css">
+<style>
+  body{ background: var(--bg); }
+  .admin-shell{ display:none; }
+  .admin-shell.show{ display:block; }
+  .login-shell{ min-height:80vh; display:flex; align-items:center; justify-content:center; }
+  .login-card{ width:100%; max-width:380px; background:var(--white); border:1px solid var(--line); border-radius:var(--radius); padding:36px; }
+  .admin-topbar{ background:var(--navy); color:var(--white); }
+  .admin-topbar .container{ display:flex; align-items:center; justify-content:space-between; height:70px; }
+  .admin-topbar .brand img{ height:32px; filter:brightness(0) invert(1); }
+  .tabs{ display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:28px; }
+  .tab{ padding:12px 18px; font-weight:600; font-size:0.92rem; color:var(--text-soft); cursor:pointer; border-bottom:2px solid transparent; }
+  .tab.active{ color:var(--navy); border-bottom-color:var(--maroon); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+  table{ width:100%; border-collapse:collapse; background:var(--white); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  th, td{ text-align:left; padding:12px 16px; font-size:0.9rem; border-bottom:1px solid var(--line); }
+  th{ background:var(--bg); color:var(--navy); font-weight:600; }
+  .status-pill{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; }
+  .status-pending{ background:#FFF3D6; color:#8A5A00; }
+  .status-confirmed{ background:#DCF3E3; color:#1D7A3C; }
+  .row-actions button{ border:none; background:none; cursor:pointer; font-size:0.85rem; font-weight:600; margin-right:10px; }
+  .row-actions .confirm{ color:#1D7A3C; }
+  .row-actions .decline{ color:var(--maroon); }
+</style>
+</head>
+<body>
+<div id="preloader"><div class="mark"></div></div>
+
+<!-- LOGIN -->
+<div class="login-shell" id="login-shell">
+  <div class="login-card">
+    <a href="index.html" class="brand" style="justify-content:center; margin-bottom:24px;"><img src="assets/logo.png" alt="Mentor's Plus"></a>
+    <h2 style="text-align:center;">Admin login</h2>
+    <form id="login-form">
+      <div class="form-field">
+        <label for="admin-email">Email</label>
+        <input type="email" id="admin-email" required>
+      </div>
+      <div class="form-field">
+        <label for="admin-password">Password</label>
+        <input type="password" id="admin-password" required>
+      </div>
+      <button type="submit" class="btn btn-navy" style="width:100%;">Log in</button>
+      <p id="login-error" style="display:none; color:var(--maroon); font-size:0.85rem; margin-top:10px;">Invalid email or password.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN SHELL -->
+<div class="admin-shell" id="admin-shell">
+  <div class="admin-topbar">
+    <div class="container">
+      <a href="index.html" class="brand"><img src="assets/logo.png" alt="Mentor's Plus"></a>
+      <button class="btn btn-outline-white" id="logout-btn" style="padding:8px 16px; font-size:0.85rem;">Log out</button>
+    </div>
+  </div>
+
+  <div class="container" style="padding: 36px 24px;">
+    <div class="tabs">
+      <div class="tab active" data-tab="bookings">Bookings</div>
+      <div class="tab" data-tab="inquiries">Student Inquiries</div>
+      <div class="tab" data-tab="schedules">Tutor Schedules</div>
+    </div>
+
+    <div class="tab-panel active" id="panel-bookings">
+      <table>
+        <thead><tr><th>Student</th><th>Course</th><th>Type</th><th>Date</th><th>Status</th><th></th></tr></thead>
+        <tbody id="bookings-body">
+          <tr>
+            <td>Juan Dela Cruz</td><td>UPCAT Full Review</td><td>1-on-1, Online</td><td>Oct 3, 2026</td>
+            <td><span class="status-pill status-pending">Pending</span></td>
+            <td class="row-actions"><button class="confirm">Confirm</button><button class="decline">Decline</button></td>
+          </tr>
+          <tr>
+            <td>Bea Santos</td><td>ACET Intensive</td><td>Classroom, Face to Face</td><td>Oct 5, 2026</td>
+            <td><span class="status-pill status-confirmed">Confirmed</span></td>
+            <td class="row-actions"><button class="decline">Cancel</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.85rem; color:var(--text-soft); margin-top:14px;">Connected to the <code>bookings</code> collection in Firestore once wired up — see assets/config.js.</p>
+    </div>
+
+    <div class="tab-panel" id="panel-inquiries">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Carlo Ramos</td><td>carlo@email.com</td><td>Asking about DCAT weekend slots</td><td><span class="status-pill status-pending">New</span></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.85rem; color:var(--text-soft); margin-top:14px;">Connected to the <code>inquiries</code> collection in Firestore once wired up.</p>
+    </div>
+
+    <div class="tab-panel" id="panel-schedules">
+      <table>
+        <thead><tr><th>Tutor</th><th>Subject</th><th>Available slots this week</th></tr></thead>
+        <tbody>
+          <tr><td>Maria Santos</td><td>Mathematics</td><td>Mon 4–6pm, Wed 4–6pm, Sat 10am–12pm</td></tr>
+          <tr><td>Josh Reyes</td><td>Science</td><td>Tue 2–4pm, Thu 2–4pm</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.85rem; color:var(--text-soft); margin-top:14px;">Edit availability per tutor once connected to Firestore.</p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/script.js"></script>
+<script src="assets/reveal.js"></script>
+<script src="assets/config.js"></script>
+<script type="module">
+  // ---- Firebase Auth setup ----
+  // Restrict admin.html access with Firebase Authentication (Email/Password),
+  // and only give the admin account access via Firestore security rules.
+  //
+  // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  // import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  // const app = initializeApp(firebaseConfig);
+  // const auth = getAuth(app);
+
+  const loginShell = document.getElementById('login-shell');
+  const adminShell = document.getElementById('admin-shell');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.style.display = 'none';
+    try {
+      // await signInWithEmailAndPassword(auth, email.value, password.value);
+      loginShell.style.display = 'none';
+      adminShell.classList.add('show');
+    } catch (err) {
+      loginError.style.display = 'block';
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    // signOut(auth);
+    adminShell.classList.remove('show');
+    loginShell.style.display = 'flex';
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Confirm/decline demo interactivity
+  document.querySelectorAll('.row-actions .confirm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pill = btn.closest('tr').querySelector('.status-pill');
+      pill.textContent = 'Confirmed';
+      pill.className = 'status-pill status-confirmed';
+    });
+  });
+</script>
+</body>
+</html>
