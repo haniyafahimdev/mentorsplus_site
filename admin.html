@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Mentor's Plus</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/preloader.css">
+<style>
+  body{ background: var(--bg); }
+  .admin-shell{ display:none; }
+  .admin-shell.show{ display:block; }
+  .login-shell{ min-height:80vh; display:flex; align-items:center; justify-content:center; }
+  .login-card{ width:100%; max-width:380px; background:var(--white); border:1px solid var(--line); border-radius:var(--radius); padding:36px; }
+  .admin-topbar{ background:var(--navy); color:var(--white); }
+  .admin-topbar .container{ display:flex; align-items:center; justify-content:space-between; height:70px; }
+  .admin-topbar .brand img{ height:32px; }
+  .tabs{ display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:28px; }
+  .tab{ padding:12px 18px; font-weight:600; font-size:0.92rem; color:var(--text-soft); cursor:pointer; border-bottom:2px solid transparent; }
+  .tab.active{ color:var(--navy); border-bottom-color:var(--maroon); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+  table{ width:100%; border-collapse:collapse; background:var(--white); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  th, td{ text-align:left; padding:12px 16px; font-size:0.9rem; border-bottom:1px solid var(--line); }
+  th{ background:var(--bg); color:var(--navy); font-weight:600; }
+  .status-pill{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; }
+  .status-pending{ background:#FFF3D6; color:#8A5A00; }
+  .status-confirmed{ background:#DCF3E3; color:#1D7A3C; }
+  .row-actions button{ border:none; background:none; cursor:pointer; font-size:0.85rem; font-weight:600; margin-right:10px; }
+  .row-actions .confirm{ color:#1D7A3C; }
+  .row-actions .decline{ color:var(--maroon); }
+  .table-scroll{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-scroll table{ min-width:560px; }
+  @media (max-width:600px){
+    .admin-topbar .container{ flex-wrap:wrap; height:auto; padding-top:12px; padding-bottom:12px; gap:10px; }
+    .tabs{ overflow-x:auto; -webkit-overflow-scrolling:touch; flex-wrap:nowrap; }
+    .tab{ white-space:nowrap; padding:10px 14px; }
+  }
+</style>
+</head>
+<body>
+<div id="preloader"><div class="mark"></div></div>
+
+<!-- LOGIN -->
+<div class="login-shell" id="login-shell">
+  <div class="login-card">
+    <a href="index.html" class="brand" style="justify-content:center; margin-bottom:24px;"><img src="assets/logo.png" alt="Mentor's Plus"></a>
+    <h2 style="text-align:center;">Admin login</h2>
+    <form id="login-form">
+      <div class="form-field">
+        <label for="admin-email">Email</label>
+        <input type="email" id="admin-email" required>
+      </div>
+      <div class="form-field">
+        <label for="admin-password">Password</label>
+        <input type="password" id="admin-password" required>
+      </div>
+      <button type="submit" class="btn btn-navy" style="width:100%;">Log in</button>
+      <p id="login-error" style="display:none; color:var(--maroon); font-size:0.85rem; margin-top:10px;">Invalid email or password.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN SHELL -->
+<div class="admin-shell" id="admin-shell">
+  <div class="admin-topbar">
+    <div class="container">
+      <a href="index.html" class="brand"><img src="assets/logo-white.png" alt="Mentor's Plus"></a>
+      <button class="btn btn-outline-white" id="logout-btn" style="padding:8px 16px; font-size:0.85rem;">Log out</button>
+    </div>
+  </div>
+
+  <div class="container" style="padding: 36px 24px;">
+    <div class="tabs">
+      <div class="tab active" data-tab="bookings">Bookings</div>
+      <div class="tab" data-tab="inquiries">Student Inquiries</div>
+      <div class="tab" data-tab="schedules">Tutor Schedules</div>
+    </div>
+
+    <div class="tab-panel active" id="panel-bookings">
+      <div class="table-scroll"><table>
+        <thead><tr><th>Student</th><th>Course</th><th>Type</th><th>Date</th><th>Status</th><th></th></tr></thead>
+        <tbody id="bookings-body">
+          <tr><td colspan="6" style="color:var(--text-soft);">Loading…</td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:0.85rem; color:var(--text-soft); margin-top:14px;">Live from the <code>bookings</code> collection in Firestore.</p>
+    </div>
+
+    <div class="tab-panel" id="panel-inquiries">
+      <div class="table-scroll"><table>
+        <thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Status</th><th></th></tr></thead>
+        <tbody id="inquiries-body">
+          <tr><td colspan="5" style="color:var(--text-soft);">Loading…</td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:0.85rem; color:var(--text-soft); margin-top:14px;">Live from the <code>inquiries</code> collection in Firestore.</p>
+    </div>
+
+    <div class="tab-panel" id="panel-schedules">
+      <div class="login-card" style="max-width:none; padding:20px; margin-bottom:20px;">
+        <form id="schedule-form" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+          <div class="form-field" style="flex:1; min-width:140px;">
+            <label for="sched-tutor">Tutor</label>
+            <input type="text" id="sched-tutor" required>
+          </div>
+          <div class="form-field" style="flex:1; min-width:140px;">
+            <label for="sched-subject">Subject</label>
+            <input type="text" id="sched-subject" required>
+          </div>
+          <div class="form-field" style="flex:2; min-width:200px;">
+            <label for="sched-slots">Available slots this week</label>
+            <input type="text" id="sched-slots" placeholder="Mon 4–6pm, Wed 4–6pm" required>
+          </div>
+          <button type="submit" class="btn btn-navy" style="height:44px;">Add</button>
+        </form>
+      </div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Tutor</th><th>Subject</th><th>Available slots this week</th><th></th></tr></thead>
+        <tbody id="schedules-body">
+          <tr><td colspan="4" style="color:var(--text-soft);">Loading…</td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:0.85rem; color:var(--text-soft); margin-top:14px;">Live from the <code>schedules</code> collection in Firestore.</p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/script.js"></script>
+<script src="assets/reveal.js"></script>
+<script src="assets/config.js"></script>
+<script type="module">
+  // ---- Firebase Auth setup ----
+  // Restrict admin.html access with Firebase Authentication (Email/Password),
+  // and only give the admin account access via Firestore security rules.
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  import {
+    getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const loginShell = document.getElementById('login-shell');
+  const adminShell = document.getElementById('admin-shell');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.style.display = 'none';
+    try {
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-password').value;
+      await signInWithEmailAndPassword(auth, email, password);
+      loginShell.style.display = 'none';
+      adminShell.classList.add('show');
+    } catch (err) {
+      loginError.style.display = 'block';
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    signOut(auth);
+    adminShell.classList.remove('show');
+    loginShell.style.display = 'flex';
+  });
+
+  // Keep the admin shell in sync with actual auth state (e.g. session expiry,
+  // or a page reload while already logged in).
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      loginShell.style.display = 'none';
+      adminShell.classList.add('show');
+    } else {
+      adminShell.classList.remove('show');
+      loginShell.style.display = 'flex';
+    }
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // ---- Bookings (live) ----
+  const bookingsBody = document.getElementById('bookings-body');
+  let unsubBookings = null;
+
+  function renderBookings(snapshot) {
+    if (snapshot.empty) {
+      bookingsBody.innerHTML = '<tr><td colspan="6" style="color:var(--text-soft);">No bookings yet.</td></tr>';
+      return;
+    }
+    bookingsBody.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const b = docSnap.data();
+      const id = docSnap.id;
+      const status = b.status || 'pending';
+      const pillClass = status === 'confirmed' ? 'status-confirmed' : 'status-pending';
+      const pillLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+      let actions = '';
+      if (status === 'pending') {
+        actions = `<button class="confirm" data-id="${id}" data-action="confirm">Confirm</button>
+                   <button class="decline" data-id="${id}" data-action="decline">Decline</button>`;
+      } else if (status === 'confirmed') {
+        actions = `<button class="decline" data-id="${id}" data-action="cancel">Cancel</button>`;
+      } else {
+        actions = `<button class="decline" data-id="${id}" data-action="delete">Remove</button>`;
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(b.name)}</td>
+        <td>${escapeHtml(b.course)}</td>
+        <td>${escapeHtml(b.sessionType)}${b.mode ? ', ' + escapeHtml(b.mode) : ''}</td>
+        <td>${escapeHtml(b.date)}</td>
+        <td><span class="status-pill ${pillClass}">${escapeHtml(pillLabel)}</span></td>
+        <td class="row-actions">${actions}</td>
+      `;
+      bookingsBody.appendChild(tr);
+    });
+  }
+
+  bookingsBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+    const ref = doc(db, 'bookings', btn.dataset.id);
+    const action = btn.dataset.action;
+    btn.disabled = true;
+    try {
+      if (action === 'confirm') await updateDoc(ref, { status: 'confirmed' });
+      else if (action === 'decline' || action === 'cancel') await updateDoc(ref, { status: 'declined' });
+      else if (action === 'delete') await deleteDoc(ref);
+    } catch (err) {
+      alert('Could not update this booking — please try again.');
+      btn.disabled = false;
+    }
+  });
+
+  // ---- Student inquiries (live) ----
+  const inquiriesBody = document.getElementById('inquiries-body');
+
+  function renderInquiries(snapshot) {
+    if (snapshot.empty) {
+      inquiriesBody.innerHTML = '<tr><td colspan="5" style="color:var(--text-soft);">No inquiries yet.</td></tr>';
+      return;
+    }
+    inquiriesBody.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const i = docSnap.data();
+      const id = docSnap.id;
+      const status = i.status || 'new';
+      const pillClass = status === 'handled' ? 'status-confirmed' : 'status-pending';
+      const pillLabel = status.charAt(0).toUpperCase() + status.slice(1);
+      const action = status === 'handled'
+        ? `<button class="decline" data-id="${id}" data-action="reopen">Reopen</button>`
+        : `<button class="confirm" data-id="${id}" data-action="handled">Mark handled</button>`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(i.name)}</td>
+        <td>${escapeHtml(i.email)}</td>
+        <td>${escapeHtml(i.message)}</td>
+        <td><span class="status-pill ${pillClass}">${escapeHtml(pillLabel)}</span></td>
+        <td class="row-actions">${action}</td>
+      `;
+      inquiriesBody.appendChild(tr);
+    });
+  }
+
+  inquiriesBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+    const ref = doc(db, 'inquiries', btn.dataset.id);
+    btn.disabled = true;
+    try {
+      await updateDoc(ref, { status: btn.dataset.action === 'handled' ? 'handled' : 'new' });
+    } catch (err) {
+      alert('Could not update this inquiry — please try again.');
+      btn.disabled = false;
+    }
+  });
+
+  // ---- Tutor schedules (live) ----
+  const schedulesBody = document.getElementById('schedules-body');
+  const scheduleForm = document.getElementById('schedule-form');
+
+  function renderSchedules(snapshot) {
+    if (snapshot.empty) {
+      schedulesBody.innerHTML = '<tr><td colspan="4" style="color:var(--text-soft);">No schedules added yet.</td></tr>';
+      return;
+    }
+    schedulesBody.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const s = docSnap.data();
+      const id = docSnap.id;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(s.tutor)}</td>
+        <td>${escapeHtml(s.subject)}</td>
+        <td>${escapeHtml(s.slots)}</td>
+        <td class="row-actions">
+          <button class="confirm" data-id="${id}" data-action="edit">Edit</button>
+          <button class="decline" data-id="${id}" data-action="delete">Delete</button>
+        </td>
+      `;
+      schedulesBody.appendChild(tr);
+    });
+  }
+
+  scheduleForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const tutor = document.getElementById('sched-tutor').value.trim();
+    const subject = document.getElementById('sched-subject').value.trim();
+    const slots = document.getElementById('sched-slots').value.trim();
+    if (!tutor || !subject || !slots) return;
+    try {
+      await addDoc(collection(db, 'schedules'), { tutor, subject, slots, createdAt: serverTimestamp() });
+      scheduleForm.reset();
+    } catch (err) {
+      alert('Could not add this schedule — please try again.');
+    }
+  });
+
+  schedulesBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+    const ref = doc(db, 'schedules', btn.dataset.id);
+    if (btn.dataset.action === 'delete') {
+      if (!confirm('Remove this tutor\'s schedule?')) return;
+      try { await deleteDoc(ref); } catch (err) { alert('Could not delete — please try again.'); }
+    } else if (btn.dataset.action === 'edit') {
+      const row = btn.closest('tr');
+      const currentSlots = row.children[2].textContent;
+      const newSlots = prompt('Update available slots:', currentSlots);
+      if (newSlots === null || newSlots.trim() === '') return;
+      try { await updateDoc(ref, { slots: newSlots.trim() }); } catch (err) { alert('Could not update — please try again.'); }
+    }
+  });
+
+  // Only attach live Firestore listeners once the admin is actually logged in,
+  // so signed-out visitors never trigger reads that Firestore rules would
+  // reject anyway.
+  let unsubInquiries = null, unsubSchedules = null;
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      if (!unsubBookings) unsubBookings = onSnapshot(query(collection(db, 'bookings'), orderBy('createdAt', 'desc')), renderBookings);
+      if (!unsubInquiries) unsubInquiries = onSnapshot(query(collection(db, 'inquiries'), orderBy('createdAt', 'desc')), renderInquiries);
+      if (!unsubSchedules) unsubSchedules = onSnapshot(collection(db, 'schedules'), renderSchedules);
+    } else {
+      if (unsubBookings) { unsubBookings(); unsubBookings = null; }
+      if (unsubInquiries) { unsubInquiries(); unsubInquiries = null; }
+      if (unsubSchedules) { unsubSchedules(); unsubSchedules = null; }
+    }
+  });
+</script>
+</body>
+</html>
